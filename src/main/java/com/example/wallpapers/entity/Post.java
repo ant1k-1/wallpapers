@@ -1,6 +1,6 @@
-package com.example.wallpapers.model;
+package com.example.wallpapers.entity;
 
-import com.example.wallpapers.enums.Status;
+import com.example.wallpapers.enums.PostStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -22,14 +22,24 @@ public class Post {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long postId;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
-    @Enumerated(EnumType.STRING)
-    private Status postStatus;
+    @Column(name = "source")
+    private String source;
 
-    @ManyToMany
+    @Column(name = "dimensions")
+    private String dimensions;
+
+    @Column(name = "size")
+    private Long size;
+
+    @Column(name = "post_status", length = 32)
+    @Enumerated(EnumType.STRING)
+    private PostStatus postStatus;
+
+    @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
             name = "post_tag",
             joinColumns = @JoinColumn(name = "post_id"),
@@ -43,8 +53,8 @@ public class Post {
     @Column(name = "downloads")
     private Long downloads;
 
-    @Column(name = "rating")
-    private Long rating;
+    @Column(name = "likes")
+    private Long likes;
 
     @Column(name = "image_uuid")
     private String imageUUID;
@@ -54,4 +64,5 @@ public class Post {
 
     @Column(name = "upload_date")
     private LocalDateTime uploadDate;
+
 }

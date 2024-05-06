@@ -1,4 +1,4 @@
-package com.example.wallpapers.model;
+package com.example.wallpapers.entity;
 
 import com.example.wallpapers.enums.TagType;
 import jakarta.persistence.*;
@@ -23,7 +23,7 @@ public class Tag {
     @Column(name = "tag_name", length = 255)
     private String tagName;
 
-    @ManyToMany(mappedBy = "postTags")
+    @ManyToMany(mappedBy = "postTags", fetch = FetchType.LAZY)
     private Set<Post> posts;
 
     @Column(name = "usage_count")

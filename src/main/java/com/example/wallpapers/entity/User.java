@@ -1,6 +1,7 @@
-package com.example.wallpapers.model;
+package com.example.wallpapers.entity;
 
 import com.example.wallpapers.enums.Role;
+import com.example.wallpapers.enums.UserStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -28,17 +29,34 @@ public class User {
     @Column(name = "password")
     private String password;
 
+    @Column(name = "status")
+    @Enumerated(EnumType.STRING)
+    private UserStatus status;
+
     @Column(name = "email")
     private String email;
+
+    @Column(name = "show_favourites")
+    private Boolean showFavourites;
 
     @Column(name = "registration_date")
     private LocalDateTime registrationDate;
 
-    @OneToMany(mappedBy = "user")
-    private List<Post> posts;
+    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
+    private List<Post> uploads;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "favourites",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "post_id")
+    )
+    private Set<Post> favourites;
 
     @ElementCollection(targetClass = Role.class, fetch = FetchType.EAGER)
     @CollectionTable(name = "user_role", joinColumns = @JoinColumn(name = "user_id"))
     @Enumerated(EnumType.STRING)
     private Set<Role> roles = new HashSet<>();
+
+
 }

@@ -29,11 +29,30 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
-	developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
+//	developmentOnly 'org.springframework.boot:spring-boot-docker-compose'
 	runtimeOnly 'org.postgresql:postgresql'
 	annotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testImplementation 'org.springframework.security:spring-security-test'
+
+	//	for JWT authentication
+	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-impl:0.11.5'
+	runtimeOnly 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+	implementation 'javax.xml.bind:jaxb-api:2.3.1'
+
+	//	GSON for serialization
+	implementation 'com.google.code.gson:gson:2.10.1'
+
+	// converter to webp
+	// https://mvnrepository.com/artifact/org.sejda.imageio/webp-imageio
+	implementation 'org.sejda.imageio:webp-imageio:0.1.6'
+
+	// extract file extension
+	// https://mvnrepository.com/artifact/org.apache.tika/tika
+	implementation 'org.apache.tika:tika-core:2.9.2'
+	implementation 'org.apache.tika:tika-parsers-standard-package:2.9.2'
+
 }
 
 tasks.named('test') {
