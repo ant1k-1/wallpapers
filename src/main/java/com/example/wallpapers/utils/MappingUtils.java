@@ -59,13 +59,7 @@ public class MappingUtils {
         userDto.setEmail(showEmail ? user.getEmail() : "hidden");
         userDto.setRegistrationDate(user.getRegistrationDate().format(userFormatter));
         userDto.setShowFavourites(user.getShowFavourites());
+        userDto.setUserStatus(user.getStatus().name());
         return userDto;
     }
-
-    public static Post mapToPost(PostDto postDto) {
-        Post post = new Post();
-        //post.set
-        return post;
-    }
-
 }

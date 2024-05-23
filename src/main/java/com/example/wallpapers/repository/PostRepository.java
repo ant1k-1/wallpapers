@@ -18,12 +18,22 @@ import java.util.Set;
 @Repository
 public interface PostRepository extends JpaRepository<Post, Long> {
     Page<Post> findAllByUser(User user, Pageable pageable);
+    Page<Post> findAllByUserAndPostStatus(User user, PostStatus status, Pageable pageable);
 
     @Query("SELECT p " +
             "FROM Favourite f " +
             "JOIN Post p ON f.favouriteId.postId = p.postId " +
             "WHERE f.favouriteId.userId = ?1")
     Page<Post> findFavouritesByUserId(Long userId, Pageable pageable);
+
+    @Query("SELECT p " +
+            "FROM Favourite f " +
+            "JOIN Post p ON f.favouriteId.postId = p.postId " +
+            "WHERE f.favouriteId.userId = :userId AND p.postStatus = :status")
+    Page<Post> findFavouritesByUserIdAndStatus(@Param("userId") Long userId,
+                                               @Param("status") PostStatus status,
+                                               Pageable pageable);
+
     Page<Post> findAllByPostStatus(PostStatus status, Pageable pageable);
     @Query("SELECT DISTINCT p " +
             "FROM Post p " +
@@ -34,4 +44,17 @@ public interface PostRepository extends JpaRepository<Post, Long> {
             "HAVING COUNT(DISTINCT t) = :size"
     )
     Page<Post> findAllByPostTagsIn(@Param("tags") Collection<Tag> tags, @Param("size") Integer size, Pageable pageable);
+
+    @Query("SELECT DISTINCT p " +
+            "FROM Post p " +
+            "INNER JOIN p.postTags pt " +
+            "INNER JOIN Tag t ON pt.tagId = t.tagId " +
+            "WHERE t IN :tags AND p.postStatus = :status " +
+            "GROUP BY p " +
+            "HAVING COUNT(DISTINCT t) = :size"
+    )
+    Page<Post> findAllByPostTagsInAndStatus(@Param("tags") Collection<Tag> tags,
+                                            @Param("size") Integer size,
+                                            @Param("status") PostStatus status,
+                                            Pageable pageable);
 }

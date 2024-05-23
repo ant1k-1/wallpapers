@@ -4,6 +4,7 @@ import com.example.wallpapers.dto.PostDto;
 import com.example.wallpapers.entity.*;
 import com.example.wallpapers.enums.PostSort;
 import com.example.wallpapers.enums.PostStatus;
+import com.example.wallpapers.enums.Role;
 import com.example.wallpapers.enums.UserStatus;
 import com.example.wallpapers.exception.BadArgumentException;
 import com.example.wallpapers.exception.NotFoundException;
@@ -54,7 +55,7 @@ public class PostService {
 
     public Page<PostDto> getAllPosts(int page, int size, PostSort sort) {
         Pageable pageable = PageRequest.of(page, size, sort.getSortValue());
-        return postRepository.findAll(pageable)
+        return postRepository.findAllByPostStatus(PostStatus.POST_PUBLISHED, pageable)
                 .map(MappingUtils::mapToPostDto);
     }
 
@@ -67,7 +68,7 @@ public class PostService {
     public Page<PostDto> getAllByTags(int page, int size, PostSort sort, TagNamesRequest tagNamesRequest) {
         Pageable pageable = PageRequest.of(page, size, sort.getSortValue());
         Set<Tag> tags = tagService.tagNamesToTags(tagNamesRequest.getTagNames());
-        return postRepository.findAllByPostTagsIn(tags, tags.size(), pageable)
+        return postRepository.findAllByPostTagsInAndStatus(tags, tags.size(), PostStatus.POST_PUBLISHED, pageable)
                 .map(MappingUtils::mapToPostDto);
     }
 
@@ -75,7 +76,8 @@ public class PostService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User id='" + userId + "' not found"));
         Pageable pageable = PageRequest.of(page, size, sort.getSortValue());
-        return postRepository.findAllByUser(user, pageable).map(MappingUtils::mapToPostDto);
+        return postRepository.findAllByUserAndPostStatus(user, PostStatus.POST_PUBLISHED, pageable)
+                .map(MappingUtils::mapToPostDto);
     }
 
     public Page<PostDto> getFavouritesByUser(int page, int size, PostSort sort, Long userId, Long targetId) {
@@ -84,19 +86,31 @@ public class PostService {
                 .orElseThrow(() -> new NotFoundException("User id='" + targetId + "' not found"));
         boolean isOwner = userId.equals(targetId);
         return isOwner || user.getShowFavourites()
-                ? postRepository.findFavouritesByUserId(targetId, pageable).map(MappingUtils::mapToPostDto)
+                ? postRepository.findFavouritesByUserIdAndStatus(targetId, PostStatus.POST_PUBLISHED, pageable)
+                .map(MappingUtils::mapToPostDto)
                 : Page.empty();
     }
 
-    public PostDto getById(Long postId) {
-        return MappingUtils.mapToPostDto(
-                postRepository.findById(postId)
-                .orElseThrow(() -> new NotFoundException("Post id='" + postId + "' not found"))
-        );
+    public PostDto getById(Long postId, boolean isUser) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new NotFoundException("Post id='" + postId + "' not found"));
+        if (isUser) {
+            if (post.getPostStatus().equals(PostStatus.POST_PUBLISHED)) {
+                return MappingUtils.mapToPostDto(post);
+            } else {
+                throw new NotFoundException("Post id='" + postId + "' not found");
+            }
+        } else {
+            return MappingUtils.mapToPostDto(post);
+        }
     }
 
     @Transactional
     public void create(Map<String, String> map, MultipartFile image, Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User id='" + userId + "' not found"));
+        if (!user.getStatus().equals(UserStatus.USER_ACTIVATED))
+            throw new BadArgumentException("User with status='" + user.getStatus().name() + "' is not allowed to upload images");
         if (image.isEmpty()) throw new BadArgumentException("No image provided");
         Tika tika = new Tika();
         String detectedType;
@@ -115,11 +129,6 @@ public class PostService {
         if (detectedType.equals("image/webp")) {
             throw new BadArgumentException("Requires high-resolution MIME type (png or jpeg) but not '" + detectedType + "'");
         }
-
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NotFoundException("User id='" + userId + "' not found"));
-        if (!user.getStatus().equals(UserStatus.USER_ACTIVATED))
-            throw new BadArgumentException("User with status='" + user.getStatus().name() + "' is not allowed to upload images");
         Post post = new Post();
         post.setUser(user);
         try {
@@ -178,6 +187,7 @@ public class PostService {
                 () -> new NotFoundException("Post id='" + postId + "' not found"));
         try {
             post.setPostStatus(PostStatus.valueOf(status));
+            postRepository.save(post);
         } catch (IllegalArgumentException ex) {
             throw new BadArgumentException("Status '" + status + "' is invalid");
         }
@@ -212,6 +222,10 @@ public class PostService {
     public void setPreviewQuality(Integer percent) {
         float percentFloat = (float) Math.round(percent * 100.0f) / 10000.0f;
         lowResolutionStorage.setPreviewQuality(percentFloat);
+    }
+
+    public Integer getPreviewQuality() {
+        return lowResolutionStorage.getPreviewQuality();
     }
 
     public void addPostTag(Long postId, Tag tag) {

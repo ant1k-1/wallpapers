@@ -54,7 +54,7 @@ public class TagService {
     }
 
     public List<TagDto> getTagsStartingWith(String prefix) {
-        return tagRepository.findAllByTagNameContains(prefix)
+        return tagRepository.findAllByTagNameStartingWith(prefix)
                 .stream().map(MappingUtils::mapToTagDto).toList();
     }
 

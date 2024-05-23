@@ -9,4 +9,5 @@ public class UserDto {
     private String email;
     private Boolean showFavourites;
     private String registrationDate;
+    private String userStatus;
 }

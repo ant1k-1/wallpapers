@@ -27,7 +27,7 @@ import java.util.stream.Stream;
 public class LowResolutionStorage implements FileStorageService{
 
     private final Path root = Paths.get("lowres");
-    private float compression = 1.0f;
+    private float compression = 0.2f;
     @Override
     public void init() {
         try {
@@ -107,7 +107,6 @@ public class LowResolutionStorage implements FileStorageService{
     public boolean delete(String filename) {
         try {
             Path file = root.resolve(filename);
-            System.out.println("delete low: " + file.toString());
             return Files.deleteIfExists(file);
         } catch (IOException e) {
             throw new RuntimeException("Error: " + e.getMessage());
@@ -130,5 +129,9 @@ public class LowResolutionStorage implements FileStorageService{
 
     public void setPreviewQuality(float percentFloat) {
         compression = percentFloat;
+    }
+
+    public Integer getPreviewQuality() {
+        return (int) (compression * 100);
     }
 }

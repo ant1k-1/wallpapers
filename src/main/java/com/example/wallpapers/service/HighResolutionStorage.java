@@ -74,7 +74,6 @@ public class HighResolutionStorage implements FileStorageService{
     public boolean delete(String filename) {
         try {
             Path file = root.resolve(filename);
-            System.out.println("delete high: " + file.toString());
             return Files.deleteIfExists(file);
         } catch (IOException e) {
             throw new RuntimeException("Error: " + e.getMessage());

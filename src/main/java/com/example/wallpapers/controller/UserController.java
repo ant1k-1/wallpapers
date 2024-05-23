@@ -3,6 +3,7 @@ package com.example.wallpapers.controller;
 import com.example.wallpapers.dto.PostDto;
 import com.example.wallpapers.dto.UserDto;
 import com.example.wallpapers.enums.PostSort;
+import com.example.wallpapers.enums.UserSort;
 import com.example.wallpapers.jwt.JwtAuthentication;
 import com.example.wallpapers.pojo.ChangePasswordRequest;
 import com.example.wallpapers.pojo.StatusRequest;
@@ -29,8 +30,26 @@ public class UserController {
     @PreAuthorize("hasRole('ROLE_USER')")
     @GetMapping("/id/{user_id}")
     @ResponseBody
-    public UserDto getUser(@PathVariable("user_id") Long targetId, JwtAuthentication auth) {
-        return userService.getUserInfo(auth.getId(), targetId);
+    public UserDto getUserById(@PathVariable("user_id") Long targetId, JwtAuthentication auth) {
+        return userService.getUserById(auth.getId(), targetId);
+    }
+
+    @PreAuthorize("hasAnyRole('ROLE_MODER', 'ROLE_ADMIN')")
+    @GetMapping("/username/{user_username}")
+    @ResponseBody
+    public UserDto getUserByUsername(@PathVariable("user_username") String username) {
+        return userService.getUserByUsername(username);
+    }
+
+    @PreAuthorize("hasAnyRole('ROLE_MODER', 'ROLE_ADMIN')")
+    @GetMapping("/all")
+    @ResponseBody
+    public Page<UserDto> getAllUsers(
+            @RequestParam(value = "page", defaultValue = "0") Integer page,
+            @RequestParam(value = "size", defaultValue = "10") Integer size,
+            @RequestParam(value = "sort", defaultValue = "USER_ID_ASC") UserSort sort
+    ) {
+        return userService.getAllUsers(page, size, sort);
     }
 
     @PreAuthorize("hasRole('ROLE_USER')")

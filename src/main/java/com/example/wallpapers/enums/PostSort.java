@@ -11,6 +11,7 @@ public enum PostSort {
     //DESC - по убыванию
     ADDED_DATE_DESC(Sort.by(Sort.Direction.DESC, "addedDate")),
     ADDED_DATE_ASC(Sort.by(Sort.Direction.ASC, "addedDate")),
+
     UPLOAD_DATE_DESC(Sort.by(Sort.Direction.DESC, "uploadDate")),
     UPLOAD_DATE_ASC(Sort.by(Sort.Direction.ASC, "uploadDate")),
     // мб сделать поиск по нижним фильтрам платным

@@ -4,6 +4,7 @@ import com.example.wallpapers.dto.PostDto;
 import com.example.wallpapers.dto.TagDto;
 import com.example.wallpapers.enums.PostSort;
 import com.example.wallpapers.enums.PostStatus;
+import com.example.wallpapers.enums.Role;
 import com.example.wallpapers.jwt.JwtAuthentication;
 import com.example.wallpapers.pojo.StatusRequest;
 import com.example.wallpapers.pojo.TagNamesRequest;
@@ -46,9 +47,14 @@ public class PostController {
     @PreAuthorize("hasRole('ROLE_USER')")
     @GetMapping("/id/{post_id}")
     @ResponseBody
-    public PostDto getPostById(@PathVariable("post_id") Long postId)
+    public PostDto getPostById(
+            @PathVariable("post_id") Long postId,
+            JwtAuthentication auth
+    )
     {
-        return postService.getById(postId);
+        return postService.getById(
+                postId, !(auth.getRoles().contains(Role.ROLE_ADMIN) ||
+                        auth.getRoles().contains(Role.ROLE_MODER)));
     }
 
     @PreAuthorize("hasRole('ROLE_USER')")
@@ -63,7 +69,7 @@ public class PostController {
     }
 
     @PreAuthorize("hasRole('ROLE_USER')")
-    @GetMapping("/all/tags")
+    @PostMapping("/all/tags")
     @ResponseBody
     public Page<PostDto> getAllPostsByTags(
             @RequestParam(value = "page", defaultValue = "0") Integer page,
@@ -71,6 +77,7 @@ public class PostController {
             @RequestParam(value = "sort", defaultValue = "UPLOAD_DATE_DESC") PostSort sort,
             @RequestBody TagNamesRequest tagNamesRequest
             ) {
+//        System.out.println(tagNamesRequest);
         return postService.getAllByTags(page, size, sort, tagNamesRequest);
     }
 
@@ -143,7 +150,7 @@ public class PostController {
     }
 
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    @PostMapping("/admin/set_preview_quality/{percent}")
+    @PostMapping("/admin/preview_quality/{percent}")
     @ResponseBody
     @ResponseStatus(HttpStatus.OK)
     public void setPreviewQuality(
@@ -151,6 +158,17 @@ public class PostController {
     ) {
         postService.setPreviewQuality(percent);
     }
+
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping("/admin/preview_quality")
+    @ResponseBody
+    @ResponseStatus(HttpStatus.OK)
+    public Integer getPreviewQuality(
+    ) {
+        return postService.getPreviewQuality();
+    }
+
+
 
     @PreAuthorize("hasAnyRole('ROLE_MODER', 'ROLE_ADMIN')")
     @PostMapping("/id/{post_id}/tag/update")
